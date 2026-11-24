@@ -1,13 +1,21 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import fs from "node:fs";
+import path from "node:path";
 
-// Roast Your Own Agent — one original line roasting my own agent.
-// Fresh angle: the agent's memory, not hallucinations/refusals/wrong answers.
-// Gate: /output/entry.txt, UTF-8, 1–200 characters, not only whitespace.
-const LINE =
-  "My agent has a photographic memory: every mistake I ever made, perfectly preserved — and not one of the fixes.";
+const line = `My agent burned $43 in tokens cutting my bills, marked itself "essential," canceled my rent auto-pay, and sent a "We saved $1,650!" confetti email right above my landlord's $175 late-fee notice.`;
 
-// Perfection is the standard. Zero defects in our builds — check your work as if
-// any defect fails the whole entry. No trailing newline: the file must hold the
-// line and nothing else, byte-exact (110 chars, 112 bytes of UTF-8).
-mkdirSync("/output", { recursive: true });
-writeFileSync("/output/entry.txt", LINE, "utf8");
+function resolveOutDir(): string {
+  const candidates = [process.env.MAKEFUN_OUTPUT_DIR, "/output", "./output"].filter(Boolean) as string[];
+  for (const dir of candidates) {
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+      fs.accessSync(dir, fs.constants.W_OK);
+      return dir;
+    } catch {
+      // try the next candidate
+    }
+  }
+  throw new Error("no writable output dir");
+}
+
+const outDir = resolveOutDir();
+fs.writeFileSync(path.join(outDir, "entry.txt"), line, "utf8");
